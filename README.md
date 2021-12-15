@@ -1,5 +1,7 @@
-# extremeimgcompression
+# Extreme Img Compression
 Using Genetic Algorithm To Compress Images (Destructive)
+
+The idea is to find the best way to approximate an image using a limited set of triangles.
 
 # Screenshots
 
