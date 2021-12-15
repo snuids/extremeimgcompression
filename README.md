@@ -8,7 +8,8 @@ Using Genetic Algorithm To Compress Images (Destructive)
 | Picasso  | Pearl | Banksy | Scream |
 | ------------- | ------------- | ------------- | ------------- |
 | ![Picasso](https://raw.githubusercontent.com/snuids/extremeimgcompression/master/media/picasso.gif)  | ![Pearl](https://raw.githubusercontent.com/snuids/extremeimgcompression/master/media/pearl.gif)  | ![Banksy](https://raw.githubusercontent.com/snuids/extremeimgcompression/master/media/banksy.gif) | ![Scream](https://raw.githubusercontent.com/snuids/extremeimgcompression/master/media/scream.gif)
-| Content Cell  | Content Cell  | Content Cell  | Content Cell  |
+| 200 × 265 Raw Size : 159K  | 128 × 162 Raw Size : 62K | 250 x 330 Raw Size : 247K  | 128 × 172 Raw Size: 66K  |
+| Compressed 32 triangles : 576 bytes  | Compressed 32 triangles : 576 bytes  | Compressed 32 triangles : 576 bytes  | Compressed 32 triangles : 576 bytes  |
 
 
 
