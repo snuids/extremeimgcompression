@@ -5,15 +5,15 @@ Using Genetic Algorithm To Compress Images (Destructive)
 
 ## Showcase
 
-| First Header  | Second Header |
+| Picasso  | Pearl | Banksy | Scream |
 | ------------- | ------------- |
-| ![Picasso](https://raw.githubusercontent.com/snuids/extremeimgcompression/master/media/picasso.gif)  | ![Pearl](https://raw.githubusercontent.com/snuids/extremeimgcompression/master/media/pearl.gif)  |
-| Content Cell  | Content Cell  |
+| ![Picasso](https://raw.githubusercontent.com/snuids/extremeimgcompression/master/media/picasso.gif)  | ![Pearl](https://raw.githubusercontent.com/snuids/extremeimgcompression/master/media/pearl.gif)  | ![Banksy](https://raw.githubusercontent.com/snuids/extremeimgcompression/master/media/banksy.gif) | ![Scream](https://raw.githubusercontent.com/snuids/extremeimgcompression/master/media/scream.gif)
+| Content Cell  | Content Cell  | Content Cell  | Content Cell  |
 
 
 
 
 
-![Banksy](https://raw.githubusercontent.com/snuids/extremeimgcompression/master/media/banksy.gif)
 
-![Scream](https://raw.githubusercontent.com/snuids/extremeimgcompression/master/media/scream.gif)
+
+
