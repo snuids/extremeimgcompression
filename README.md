@@ -18,9 +18,9 @@ The idea is to find the best way to approximate an image using a limited set of 
 
 | Scream  | Cupcake |  |
 | :-------------: | :-------------: | :-------------: |
-| ![Scream](https://raw.githubusercontent.com/snuids/extremeimgcompression/master/media/scream.gif)  | ![banksy](https://raw.githubusercontent.com/snuids/extremeimgcompression/master/media/banksy.gif)  | |
-| 128 × 172 Raw Size: 66K  |  |  | 
-| 32 triangles : 576 bytes  | 32 triangles : 576 bytes  |  
+| ![Scream](https://raw.githubusercontent.com/snuids/extremeimgcompression/master/media/scream.gif)  | ![banksy](https://raw.githubusercontent.com/snuids/extremeimgcompression/master/media/cupcake.gif)  | |
+| 128 × 172 Raw Size: 66K  | 160 x 162 Raw: 77K |  | 
+| 20 triangles : 360 bytes  | 32 triangles : 576 bytes  |  
 | Ratio : 0.3 % |  | 
 
 
