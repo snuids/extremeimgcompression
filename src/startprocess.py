@@ -7,14 +7,24 @@ import numpy as np
 from datetime import datetime
 from PIL import Image,ImageDraw
 
+transparent="T"
+
 def drawSolution(newimage):
-    global org_im
-    new_im=Image.new('RGB', org_im.size)
-    draw = ImageDraw.Draw(new_im)
-    
-    for prim in newimage["primitives"]:
-        draw.polygon(prim["primitive"],prim["color"])
+    global org_im,transparent
         
+    if transparent=="T":
+        new_im=Image.new('RGB', org_im.size)
+        draw = ImageDraw.Draw(new_im,'RGBA')    
+        for prim in newimage["primitives"]:        
+            draw.polygon(prim["primitive"],prim["color"]+(32,))
+
+        #new_im=new_im.convert('RGB')
+    else:
+        new_im=Image.new('RGB', org_im.size)
+        draw = ImageDraw.Draw(new_im)    
+        for prim in newimage["primitives"]:        
+            draw.polygon(prim["primitive"],prim["color"])
+            
     newimage["image"]=new_im
 
 def createSolution(num_of_primitives):
@@ -34,6 +44,7 @@ def createSolution(num_of_primitives):
         n1=(x2+y2+z2)/3
         
         r, g, b = org_im.getpixel((m1, n1))
+
         
         newprim={"primitive":((x1,x2),(y1,y2),(z1,z2)),"type":2,"color":(r,g,b)}
         newimage["primitives"].append(newprim)
@@ -246,6 +257,7 @@ def mutate_pt(solution,debug=False):
             solution["value"]=val
 
 def mutate_dead_primitives(solution):
+    global transparent
     drawSolution(solution)
     val=costFunction(solution["image"])
     if (val !=solution["value"]):
@@ -494,14 +506,14 @@ if __name__ == "__main__":
     primitives=int(sys.argv[3])
     print(f"Primitives:{primitives}")
 
-    path_to_folder=f"./solutions/{filename.replace('.jpg','')}-{primitives}"
+    path_to_folder=f"./solutions/{filename.replace('.jpg','')}-{primitives}"+transparent
     try:
         os.makedirs(path_to_folder)
     except:
         pass
 
     org_data=None
-    with Image.open(filename) as org_im:
+    with Image.open(filename) as org_im:        
         org_data1 = np.asarray(org_im)
         org_data=np.reshape(org_data1,-1)
 
@@ -538,7 +550,7 @@ if __name__ == "__main__":
             bestage+=1
         else:
     #        population[0]["image"].show()
-            population[0]["image"].save(path_to_folder+"/"+filename+"." + datetime.now().strftime("%d-%B-%Y_%H%M%S")+"-"+str(primitives)+".jpg", "JPEG", quality=100, subsampling=0)
+            population[0]["image"].save(path_to_folder+"/"+filename+"." + datetime.now().strftime("%d-%B-%Y_%H%M%S")+"-"+str(primitives)+".png", "PNG", quality=100, subsampling=0)
             save_solution(population[0],path_to_folder+"/"+filename+"." + datetime.now().strftime("%d-%B-%Y_%H%M%S")+"-"+str(primitives)+".eco")
             bestage=0
         if bestage==20:
