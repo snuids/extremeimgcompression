@@ -16,7 +16,7 @@ The idea is to find the best way to approximate an image using a limited set of 
 
 
 
-| Scream  | Cupcake |  |
+| Scream  | Cupcake | Banksy |
 | :-------------: | :-------------: | :-------------: |
 | ![Scream](https://raw.githubusercontent.com/snuids/extremeimgcompression/master/media/scream.gif)  | ![cupcake](https://raw.githubusercontent.com/snuids/extremeimgcompression/master/media/cupcake.gif)  | ![Banksy](https://raw.githubusercontent.com/snuids/extremeimgcompression/master/media/banksy8.gif) |
 | 128 × 172 Raw Size: 66K  | 160 x 162 Raw: 77K | 250 x 330 Raw Size : 247K | 
