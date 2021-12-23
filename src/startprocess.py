@@ -16,7 +16,7 @@ def drawSolution(newimage):
         new_im=Image.new('RGB', org_im.size)
         draw = ImageDraw.Draw(new_im,'RGBA')    
         for prim in newimage["primitives"]:        
-            draw.polygon(prim["primitive"],prim["color"]+(32,))
+            draw.polygon(prim["primitive"],prim["color"]+(128,))
 
         #new_im=new_im.convert('RGB')
     else:
