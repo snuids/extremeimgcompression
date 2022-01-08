@@ -2,12 +2,38 @@
 import os
 import sys
 import copy
+import json
+import boto3
 import random
+import threading
 import numpy as np
 from datetime import datetime
 from PIL import Image,ImageDraw
 
 transparent="T"
+useAWS=False
+lambda_client=None
+
+global_query={'primitives': [{'primitive': [[79, 146], [79, 149], [60, 85]], 'color': [111, 63, 27]}, {'primitive': [[68, 12], [97, 33], [2, 126]], 'color': [209, 169, 99]}, {'primitive': [[87, 172], [109, 172], [5, 96]], 'color': [118, 74, 45]}, {'primitive': [[6, 23], [107, 147], [91, 29]], 'color': [231, 193, 112]}], 'image': 'scream.jpg', 'value': 1023613105, 'mutations_number': 30}
+
+
+if useAWS and "AWS_CONTEXT" not in os.environ:
+    aws_session = boto3.session.Session(profile_name='ama')
+    lambda_client = aws_session.client('lambda',region_name="us-east-1")
+    invoke_response=lambda_client.invoke(
+        FunctionName="ecoservice-dev-hello",
+        InvocationType='RequestResponse',
+        Payload=json.dumps({"data":"in"})
+    )
+    text=invoke_response['Payload'].read().decode("utf-8")
+    print(text)
+    #print()
+    response_payload = json.loads(text)
+    print(json.loads(response_payload["body"]))
+    
+    print("AWS "*20)
+
+
 
 def drawSolution(newimage):
     global org_im,transparent
@@ -46,7 +72,7 @@ def createSolution(num_of_primitives):
         r, g, b = org_im.getpixel((m1, n1))
 
         
-        newprim={"primitive":((x1,x2),(y1,y2),(z1,z2)),"type":2,"color":(r,g,b)}
+        newprim={"primitive":((x1,x2),(y1,y2),(z1,z2)),"color":(r,g,b)}
         newimage["primitives"].append(newprim)
     drawSolution(newimage)
     return newimage
@@ -267,7 +293,7 @@ def mutate_dead_primitives(solution):
     cur_val=solution["value"]
 #    print(f"ORGL {cur_val}")
 
-    found=True
+    found=0
     
     for i in range(0,len(solution["primitives"])):
 #        print(i)
@@ -275,21 +301,21 @@ def mutate_dead_primitives(solution):
         newprimitive=((0,0),(0,0),(0,0))
         solution["primitives"][i]["primitive"]=newprimitive
         
-#        print(orgprimitive)
-#        print(newprimitive)
         drawSolution(solution)
         val=costFunction(solution["image"])
-#        print(f"NVAL {val}")
-        if val>=cur_val:        
+#        if val/cur_val >1.02:        
+        if val>cur_val:        
 #            print("Failure+")            
             solution["primitives"][i]["primitive"]=orgprimitive
             drawSolution(solution)
             val=costFunction(solution["image"])
-            #print(f"OVAL {val}")
         else:
-            found=True
+            found+=1
 #            print(f"VICTORY {i}")
 #        break
+        if found>3:
+#            print(f"VICTORY {i}")
+            break
     #    print(bestprimitivearr)
 #        tomove=random.randint(1,25)
 #        cur_val=solution["value"]
@@ -343,8 +369,7 @@ def cross(sol1,sol2):
     
     newimage={"primitives":new_primitives}
     drawSolution(newimage)
-
-    newimage["value"]=costFunction(newimage["image"])
+    newimage["value"]=costFunction(newimage["image"])    
     return newimage
 
 def cross2(sol1,sol2):
@@ -359,6 +384,112 @@ def cross2(sol1,sol2):
 
     newimage["value"]=costFunction(newimage["image"])
     return newimage
+
+def aws_mutate(event_in,context):
+    global org_data,org_im,primitives
+    event=event_in
+    print(event)
+
+    if len(org_data)==0:
+        print("LOAD ORIGINAL IMAGE")
+        with Image.open(event_in["image"]) as org_im:        
+            org_data1 = np.asarray(org_im)
+            org_data=np.reshape(org_data1,-1)
+    
+    print("=====>")
+
+    for pp in event_in["primitives"]:
+        pp["color"]=tuple(pp["color"])
+        pp["primitive"]=tuple(tuple(_) for _ in pp["primitive"])
+    print(event_in["primitives"])
+    primitives=event_in["nof_primitives"]
+
+
+    solution={"primitives":event_in["primitives"]}    
+    drawSolution(solution)    
+    solution["value"]=costFunction(solution["image"])
+    print(solution["value"])
+
+    for j in range(0,event["mutations_number"]):                 
+        to_do= random.randint(0,3)
+        if to_do==0:
+            mutate_colors_2(solution,debug=False) 
+        elif to_do==1:
+            mutate_pt(solution)        
+        elif to_do==2:
+            mutate_permute(solution)        
+        else:
+            mutate_dead_primitives(solution)   
+
+    print("=====>")  
+    print(solution["value"])
+    body={"primitives":solution["primitives"],"value":int(solution["value"])}
+
+    response = {
+        "statusCode": 200,
+        "body": json.dumps(body)
+    }
+    return response
+    
+    
+
+
+def run_thread(payload):
+    global population
+    print(f"TH:{payload['thread']} BEF:{payload['value']}")
+    invoke_response=lambda_client.invoke(
+                    FunctionName="ecoservice-dev-mutate",
+                    InvocationType='RequestResponse',
+                    Payload=json.dumps(payload)
+                )
+                #print(invoke_response['Payload'].read().decode("utf-8"))
+    response_payload = json.loads(invoke_response['Payload'].read().decode("utf-8"))
+    event_out=json.loads(response_payload["body"])
+
+    for pp in event_out["primitives"]:
+        pp["color"]=tuple(pp["color"])
+        pp["primitive"]=tuple(tuple(_) for _ in pp["primitive"])
+
+    drawSolution(event_out)
+    event_out["value"]=costFunction(event_out["image"])
+    print(f"TH:{payload['thread']} AFT:{event_out['value']}")    
+    population.append(event_out)
+
+
+
+def mutate_population():
+    global useAWS,population_size
+    ths=[]
+    for i in range(0,int(population_size/2)):
+        source=random.randint(0,len(population)-1)
+
+        if useAWS:
+
+            payload={"primitives":population[source]["primitives"]
+                ,"image":filename,"value":int(population[source]["value"])
+                ,"mutations_number":20
+                ,"nof_primitives":primitives,"thread":i}
+            #payload=global_query
+            #aws_mutate(payload,None)
+            processThread = threading.Thread(target=run_thread, args=(payload,))  
+            processThread.start()
+            ths.append(processThread)
+            
+        else: 
+            for j in range(0,15): 
+                
+                to_do= random.randint(0,3)
+                if to_do==0:
+                    mutate_colors_2(population[source],debug=False) 
+                elif to_do==1:
+                    mutate_pt(population[source])        
+                elif to_do==2:
+                    mutate_permute(population[source])        
+                else:
+                    mutate_dead_primitives(population[source])  
+    if useAWS:
+        for processThread in ths:
+            processThread.join()      
 
 def create_generation():
     global population
@@ -392,8 +523,8 @@ def create_generation():
     
     print("- Cross")
     # cross solutions
-    for i in range(0,int(population_size)):
-#    for i in range(0,0):
+#    for i in range(0,int(population_size)):
+    for i in range(0,0):
         source=random.randint(0,population_size-1)
         target=random.randint(0,population_size-1)
         if source==target:
@@ -408,31 +539,8 @@ def create_generation():
     check_population()
     
     print("- Mutate")
-    # mutate solution
-    for i in range(0,int(population_size/2)):
-#        print(i)
-        source=random.randint(0,len(population)-1)
-        bef=population[source]["value"]
-        #print("BEF:"+str(population[source]["value"]))
-        
-        for j in range(0,30): 
-            
-            to_do= random.randint(0,3)
-            if to_do==0:
-#                print("TATA")
-                mutate_colors_2(population[source],debug=False) 
-#                check_population()
-            elif to_do==1:
-                mutate_pt(population[source])        
-            elif to_do==2:
-                mutate_permute(population[source])        
-            else:
-                mutate_dead_primitives(population[source])        
+    mutate_population()
 
-        
-
-        #print("AFTER:"+str(population[source]["value"]))
-        
     check_population()
         
     pop_hash={}
@@ -487,12 +595,15 @@ def save_solution(solution,filename):
                     file.write((pri["primitive"][i][j]).to_bytes(2, byteorder='big', signed=True))
             for i in range(0,3):
                 file.write((pri["color"][i]).to_bytes(2, byteorder='big', signed=True))
+
 ########################################
 
 primitives=32
 population_size=64
 population=[]
-
+filename=""
+org_data=[]
+org_im=None
 
 if __name__ == "__main__":
     print(f"Arguments count: {len(sys.argv)}")
@@ -512,7 +623,7 @@ if __name__ == "__main__":
     except:
         pass
 
-    org_data=None
+    org_data=[]
     with Image.open(filename) as org_im:        
         org_data1 = np.asarray(org_im)
         org_data=np.reshape(org_data1,-1)
@@ -539,6 +650,9 @@ if __name__ == "__main__":
         sol=createSolution(primitives)
         sol["value"]=costFunction(sol["image"])
         population.append(sol)
+        drawSolution(sol)
+        sol["value"]=costFunction(sol["image"])
+        #aws_mutate({"primitives":sol["primitives"]},None)
     
     bestage=0
     for i in range(0,1000):
