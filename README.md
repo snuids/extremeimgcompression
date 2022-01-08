@@ -23,7 +23,10 @@ The idea is to find the best way to approximate an image using a limited set of 
 | 20 triangles : 360 bytes  | 32 triangles : 576 bytes  |  8 triangles : 152 bytes |
 | Ratio : 0.3 % |  | 
 
+## Showcase transparent
 
-
+| Scream  | Scream | Pearl |
+| :-------------: | :-------------: | :-------------: |
+| ![Scream](https://raw.githubusercontent.com/snuids/extremeimgcompression/master/media/scream2.gif)  | ![ScreamMov](https://raw.githubusercontent.com/snuids/extremeimgcompression/master/media/scream2.mov)  | ![Scream](https://raw.githubusercontent.com/snuids/extremeimgcompression/master/media/pearl.mov)|
 
 
